@@ -4,11 +4,11 @@ const schema = mongoose.Schema(
   {
     role_name: { type: String, required: true },
     is_active: { type: Boolean, default: true },
-    created_by: { type: mongoose.Schema.Types.ObjectId, required: true },
+    created_by: { type: mongoose.Schema.Types.ObjectId },
   },
   {
     versionKey: false,
-    timestap: {
+    timestamps: {
       createdAt: "created_at",
       updatedAt: "updated_at",
     },
