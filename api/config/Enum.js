@@ -19,4 +19,19 @@ module.exports = {
     INT_SERVER_ERROR: 500,
     BAD_GATEWAY: 502,
   },
+  TASK_STATUS: {
+    PENDING: "pending",
+    IN_PROGRESS: "in-progress",
+    COMPLETED: "completed",
+  },
+  TASK_PRIORITY: {
+    LOW: "low",
+    MEDIUM: "medium",
+    HIGH: "high",
+  },
+  USER_ROLES: {
+    ADMIN: "Admin",
+    MANAGER: "Manager",
+    DEVELOPER: "Developer",
+  },
 };

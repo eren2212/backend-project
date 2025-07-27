@@ -32,7 +32,7 @@ router.post("/add", async (req, res) => {
     if (
       !body.permissions ||
       !Array.isArray(body.permissions) ||
-      body.permissions.lenght === 0
+      body.permissions.length === 0
     ) {
       throw new customError(
         Enum.HTTP_CODES.BAD_REQUEST,
@@ -49,9 +49,9 @@ router.post("/add", async (req, res) => {
 
     await newRole.save();
 
-    for (let i = 0; i < body.permissions.lenght; i++) {
+    for (let i = 0; i < body.permissions.length; i++) {
       let priv = new RolesPrivileges({
-        role_id: body._id,
+        role_id: newRole._id,
         permissions: body.permissions[i],
         created_by: req.user?.id,
       });
@@ -82,9 +82,9 @@ router.put("/update", async (req, res) => {
     if (
       body.permissions &&
       Array.isArray(body.permissions) &&
-      body.permissions.lenght > 0
+      body.permissions.length > 0
     ) {
-      for (let i = 0; i < body.permissions.lenght; i++) {
+      for (let i = 0; i < body.permissions.length; i++) {
         let priv = new RolesPrivileges({
           role_id: body._id,
           permissions: body.permissions[i],

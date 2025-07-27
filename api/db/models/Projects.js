@@ -2,12 +2,10 @@ const mongoose = require("mongoose");
 
 const schema = mongoose.Schema(
   {
-    role_id: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "roles",
-      required: true,
-    },
-    user_id: {
+    title: { type: String, required: true },
+    description: { type: String, required: true },
+    is_active: { type: Boolean, default: true },
+    created_by: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "users",
       required: true,
@@ -22,8 +20,8 @@ const schema = mongoose.Schema(
   }
 );
 
-class UserRoles extends mongoose.Model {}
+class Projects extends mongoose.Model {}
 
-schema.loadClass(UserRoles);
+schema.loadClass(Projects);
 
-module.exports = mongoose.model("user_roles", schema);
+module.exports = mongoose.model("projects", schema);

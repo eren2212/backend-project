@@ -1,4 +1,5 @@
 const CustomError = require("./Error");
+const Enum = require("../config/Enum");
 
 class Response {
   static successResponse(data, code = 200) {
