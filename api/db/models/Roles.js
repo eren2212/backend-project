@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-
+const RolePrivileges = require("../models/RolePrivileges");
 const schema = mongoose.Schema(
   {
     role_name: { type: String, required: true },
@@ -15,7 +15,14 @@ const schema = mongoose.Schema(
   }
 );
 
-class Roles extends mongoose.Model {}
+class Roles extends mongoose.Model {
+  static async deleteOne(query) {
+    if (query._id) {
+      await RolePrivileges.deleteMany({ role_id: query._id });
+    }
+    await super.deleteOne(query);
+  }
+}
 
 schema.loadClass(Roles);
 
