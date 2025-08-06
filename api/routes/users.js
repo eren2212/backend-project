@@ -119,5 +119,29 @@ router.put("/update", async (req, res) => {
     res.status(errorResponse.code).json(errorResponse);
   }
 });
+router.put("/update/password", async (req, res) => {
+  let { password, _id } = req.body;
+  try {
+    if (!_id)
+      throw new customError(
+        Enum.HTTP_CODES.BAD_REQUEST,
+        "validation error",
+        "_id is required"
+      );
 
+    if (!isValidPassword(password))
+      throw new customError(
+        Enum.HTTP_CODES.BAD_REQUEST,
+        "validation error",
+        "Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, one number, and one special character."
+      );
+
+    const hash = await bcrypt.hashSync(password, 10);
+    await Users.updateOne({ _id }, { password: hash });
+    res.json(Response.successResponse({ success: true }));
+  } catch (err) {
+    let errorResponse = Response.errorResponse(err);
+    res.status(errorResponse.code).json(errorResponse);
+  }
+});
 module.exports = router;
