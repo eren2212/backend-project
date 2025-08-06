@@ -1,4 +1,5 @@
 const CustomError = require("./Error");
+const Enum = require("../config/Enum");
 
 class Response {
   static successResponse(data, code = 200) {
@@ -7,14 +8,22 @@ class Response {
       data,
     };
   }
-  static errorResponse(error) {
-    console.log(error.message);
+  static errorResponse(error, lang) {
+    console.error(error);
     if (error instanceof CustomError) {
       return {
         code: error.code,
         error: {
           message: error.message,
-          data: error.description,
+          description: error.description,
+        },
+      };
+    } else if (error.message.includes("E11000")) {
+      return {
+        code: Enum.HTTP_CODES.CONFLICT,
+        error: {
+          message: "Already Exists!",
+          description: "Already Exists!",
         },
       };
     }
@@ -22,8 +31,8 @@ class Response {
     return {
       code: Enum.HTTP_CODES.INT_SERVER_ERROR,
       error: {
-        message: "Unexpected error",
-        data: error.message,
+        message: i18n.translate("COMMON.UNKNOWN_ERROR", lang),
+        description: error.message,
       },
     };
   }
