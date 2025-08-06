@@ -31,7 +31,7 @@ class Response {
     return {
       code: Enum.HTTP_CODES.INT_SERVER_ERROR,
       error: {
-        message: i18n.translate("COMMON.UNKNOWN_ERROR", lang),
+        message: error.message,
         description: error.message,
       },
     };

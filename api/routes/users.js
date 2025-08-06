@@ -95,4 +95,29 @@ router.post("/add", async (req, res) => {
     res.status(errorResponse.code).json(errorResponse);
   }
 });
+
+router.put("/update", async (req, res) => {
+  let body = req.body;
+  try {
+    let updates = {};
+
+    if (!body._id)
+      throw new customError(
+        Enum.HTTP_CODES.BAD_REQUEST,
+        "validation error",
+        "_id is required"
+      );
+
+    if (body.first_name) updates.first_name = body.first_name;
+    if (body.last_name) updates.last_name = body.last_name;
+    if (body.phone_number) updates.phone_number = body.phone_number;
+
+    await Users.updateOne({ _id: body._id }, updates);
+    res.json(Response.successResponse({ success: true }));
+  } catch (err) {
+    let errorResponse = Response.errorResponse(err);
+    res.status(errorResponse.code).json(errorResponse);
+  }
+});
+
 module.exports = router;
