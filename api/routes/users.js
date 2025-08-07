@@ -108,6 +108,7 @@ router.put("/update", async (req, res) => {
         "_id is required"
       );
 
+    if (typeof body.is_active === "boolean") updates.is_active = body.is_active;
     if (body.first_name) updates.first_name = body.first_name;
     if (body.last_name) updates.last_name = body.last_name;
     if (body.phone_number) updates.phone_number = body.phone_number;
@@ -139,6 +140,105 @@ router.put("/update/password", async (req, res) => {
     const hash = await bcrypt.hashSync(password, 10);
     await Users.updateOne({ _id }, { password: hash });
     res.json(Response.successResponse({ success: true }));
+  } catch (err) {
+    let errorResponse = Response.errorResponse(err);
+    res.status(errorResponse.code).json(errorResponse);
+  }
+});
+
+router.delete("/delete", async (req, res) => {
+  let body = req.body;
+  try {
+    if (!body._id) {
+      throw new customError(
+        Enum.HTTP_CODES.BAD_REQUEST,
+        "validation error",
+        "_id must be filled"
+      );
+    }
+    await Users.deleteOne({ _id: body._id });
+    res.json(Response.successResponse({ success: true }));
+  } catch (err) {
+    let errorResponse = Response.errorResponse(err);
+    res.status(errorResponse.code).json(errorResponse);
+  }
+});
+
+router.post("/register", async (req, res) => {
+  let body = req.body;
+  try {
+    let user = await Users.findOne({});
+    if (user) {
+      return res.sendStatus(Enum.HTTP_CODES.NOT_FOUND);
+    }
+    if (!body.email) {
+      throw new customError(
+        Enum.HTTP_CODES.BAD_REQUEST,
+        "validation error",
+        "email must be filled"
+      );
+    }
+    if (await Users.findOne({ email: body.email })) {
+      throw new customError(
+        Enum.HTTP_CODES.BAD_REQUEST,
+        "validation error",
+        "This email is already registered."
+      );
+    }
+    if (!is.email(body.email)) {
+      throw new customError(
+        Enum.HTTP_CODES.BAD_REQUEST,
+        "validation error",
+        "email be real email"
+      );
+    }
+    if (!body.password) {
+      throw new customError(
+        Enum.HTTP_CODES.BAD_REQUEST,
+        "validation error",
+        "password must be filled"
+      );
+    }
+    if (!body.first_name) {
+      throw new customError(
+        Enum.HTTP_CODES.BAD_REQUEST,
+        "validation error",
+        "first_name must be filled"
+      );
+    }
+
+    if (!isValidPassword(body.password)) {
+      throw new customError(
+        Enum.HTTP_CODES.BAD_REQUEST,
+        "validation error",
+        "Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, one number, and one special character."
+      );
+    }
+
+    const hash = await bcrypt.hashSync(body.password, 10);
+
+    // let user = new Users({
+    //   email: body.email,
+    //   password: hash,
+    //   firs_name: body.firs_name,
+    //   last_name: body.last_name,
+    //   phone_number: body.phone_number,
+    // });
+    //await user.save();
+
+    await Users.create({
+      email: body.email,
+      password: hash,
+      first_name: body.first_name,
+      last_name: body.last_name,
+      phone_number: body.phone_number,
+    });
+    //burada static olarak yapıyoruz nesne oluşturmamıza gerek kalmıyor
+    res
+      .status(Enum.HTTP_CODES.CREATED)
+      .json(
+        Response.successResponse({ success: true }, Enum.HTTP_CODES.CREATED)
+      );
   } catch (err) {
     let errorResponse = Response.errorResponse(err);
     res.status(errorResponse.code).json(errorResponse);
