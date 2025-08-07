@@ -7,6 +7,8 @@ const customError = require("../lib/Error");
 const Enum = require("../config/Enum");
 const bcrypt = require("bcryptjs");
 const is = require("is_js");
+const Roles = require("../db/models/Roles");
+const UserRoles = require("../db/models/UserRoles");
 
 /* GET users listing. */
 router.get("/", async (req, res, next) => {
@@ -66,6 +68,24 @@ router.post("/add", async (req, res) => {
       );
     }
 
+    if (!body.roles || !Array.isArray(body.roles) || body.roles.length == 0) {
+      throw new customError(
+        Enum.HTTP_CODES.BAD_REQUEST,
+        "validation error",
+        "roles field must be an array"
+      );
+    }
+
+    let roles = await Roles.find({ _id: { $in: body.roles } });
+
+    if (roles.length == 0) {
+      throw new customError(
+        Enum.HTTP_CODES.BAD_REQUEST,
+        "validation error",
+        "roles field must be an array"
+      );
+    }
+
     const hash = await bcrypt.hashSync(body.password, 10);
 
     // let user = new Users({
@@ -77,7 +97,7 @@ router.post("/add", async (req, res) => {
     // });
     //await user.save();
 
-    await Users.create({
+    let user = await Users.create({
       email: body.email,
       password: hash,
       first_name: body.first_name,
@@ -85,6 +105,13 @@ router.post("/add", async (req, res) => {
       phone_number: body.phone_number,
     });
     //burada static olarak yapıyoruz nesne oluşturmamıza gerek kalmıyor
+
+    for (let i = 0; i < roles.length; i++) {
+      await UserRoles.create({
+        role_id: roles[i]._id,
+        user_id: user._id,
+      });
+    }
     res
       .status(Enum.HTTP_CODES.CREATED)
       .json(
@@ -112,6 +139,33 @@ router.put("/update", async (req, res) => {
     if (body.first_name) updates.first_name = body.first_name;
     if (body.last_name) updates.last_name = body.last_name;
     if (body.phone_number) updates.phone_number = body.phone_number;
+
+    if (Array.isArray(body.roles) && body.roles.length > 0) {
+      let userRoles = await UserRoles.find({ user_id: body._id });
+
+      let removedRoles = userRoles.filter(
+        (x) => !body.roles.includes(x.role_id)
+      ); //["use_viwe"]
+      let newRoles = body.roles.filter(
+        (x) => !userRoles.map((r) => r.role_id).includes(x)
+      );
+
+      if (removedRoles.length > 0) {
+        await UserRoles.deleteMany({
+          _id: { $in: removedRoles.map((x) => x._id.toString()) },
+        });
+      }
+
+      if (newRoles.length > 0) {
+        for (let i = 0; i < newRoles.length; i++) {
+          let userRole = new UserRoles({
+            role_id: newRoles[i],
+            user_id: body._id,
+          });
+          await userRole.save();
+        }
+      }
+    }
 
     await Users.updateOne({ _id: body._id }, updates);
     res.json(Response.successResponse({ success: true }));
@@ -157,6 +211,9 @@ router.delete("/delete", async (req, res) => {
       );
     }
     await Users.deleteOne({ _id: body._id });
+
+    await UserRoles.deleteMany({ user_id: body._id });
+
     res.json(Response.successResponse({ success: true }));
   } catch (err) {
     let errorResponse = Response.errorResponse(err);
@@ -226,7 +283,7 @@ router.post("/register", async (req, res) => {
     // });
     //await user.save();
 
-    await Users.create({
+    let created_user = await Users.create({
       email: body.email,
       password: hash,
       first_name: body.first_name,
@@ -234,6 +291,18 @@ router.post("/register", async (req, res) => {
       phone_number: body.phone_number,
     });
     //burada static olarak yapıyoruz nesne oluşturmamıza gerek kalmıyor
+
+    let role = await Roles.create({
+      role_name: Enum.SUPER_ADMIN,
+      is_active: true,
+      created_by: created_user._id,
+    });
+
+    await UserRoles.create({
+      role_id: role._id,
+      user_id: created_user._id,
+    });
+
     res
       .status(Enum.HTTP_CODES.CREATED)
       .json(
