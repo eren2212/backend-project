@@ -5,6 +5,7 @@ const Response = require("../lib/Response");
 const customError = require("../lib/Error");
 const Enum = require("../config/Enum");
 const AuditLogs = require("../lib/Auditlogs");
+const logger = require("../lib/logger/LoggerClass");
 /**
  * Create
  * Read
@@ -43,6 +44,7 @@ router.post("/add", async (req, res, next) => {
     await category.save();
 
     AuditLogs.info(req.user?.email, "Categories", "Add", category);
+    logger.info(req.user?.email, "Categories", "Add", category);
 
     res.json(Response.successResponse({ success: true }));
   } catch (error) {
@@ -77,6 +79,7 @@ router.post("/update", async (req, res, next) => {
 
     res.json(Response.successResponse({ success: true }));
   } catch (err) {
+    logger.error(req.user?.email, "Categories", "Update", err);
     let errorResponse = Response.errorResponse(err);
     res.status(errorResponse.code).json(errorResponse);
   }
