@@ -1,4 +1,4 @@
-export function isValidPassword(password) {
+module.exports = function isValidPassword(password) {
   return (
     password.length >= 8 &&
     /[A-Z]/.test(password) && // büyük harf
@@ -6,4 +6,4 @@ export function isValidPassword(password) {
     /[0-9]/.test(password) && // rakam
     /[^A-Za-z0-9]/.test(password) // özel karakter
   );
-}
+};
