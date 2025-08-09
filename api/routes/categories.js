@@ -4,7 +4,7 @@ const Categories = require("../db/models/Categories");
 const Response = require("../lib/Response");
 const customError = require("../lib/Error");
 const Enum = require("../config/Enum");
-
+const AuditLogs = require("../lib/Auditlogs");
 /**
  * Create
  * Read
@@ -41,6 +41,9 @@ router.post("/add", async (req, res, next) => {
     });
 
     await category.save();
+
+    AuditLogs.info(req.user?.email, "Categories", "Add", category);
+
     res.json(Response.successResponse({ success: true }));
   } catch (error) {
     let errorResponse = Response.errorResponse(error);
@@ -66,6 +69,12 @@ router.post("/update", async (req, res, next) => {
     //burada true ve false değeri aldığı için isactive böyle bir kontrol yaptık.
 
     await Categories.updateOne({ _id: body._id }, updates);
+
+    AuditLogs.info(req.user?.email, "Categories", "Update", {
+      _id: body._id,
+      ...updates,
+    });
+
     res.json(Response.successResponse({ success: true }));
   } catch (err) {
     let errorResponse = Response.errorResponse(err);
@@ -84,6 +93,9 @@ router.delete("/delete", async (req, res, next) => {
       );
 
     await Categories.deleteOne({ _id: body._id });
+
+    AuditLogs.info(req.user?.email, "Categories", "Delete", { _id: body._id });
+
     res.json(Response.successResponse({ success: true }));
   } catch (err) {
     let errorResponse = Response.errorResponse(err);
