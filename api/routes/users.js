@@ -9,7 +9,7 @@ const bcrypt = require("bcryptjs");
 const is = require("is_js");
 const Roles = require("../db/models/Roles");
 const UserRoles = require("../db/models/UserRoles");
-
+  
 /* GET users listing. */
 router.get("/", async (req, res, next) => {
   try {
